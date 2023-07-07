@@ -2,14 +2,16 @@ package de.jaskerx.calendar.db;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.icu.text.SimpleDateFormat;
 import android.net.Uri;
 import android.provider.CalendarContract;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 import de.jaskerx.calendar.RRule;
@@ -61,27 +63,32 @@ public class CalendarHolder {
                     CalendarContract.Events.CALENDAR_ID,
                     CalendarContract.Events.TITLE,
                     CalendarContract.Events.DTSTART,
-                    CalendarContract.Events.RRULE
+                    CalendarContract.Events.RRULE,
+                    CalendarContract.Events.ALL_DAY
             };
 
             final int calendarIdIndex = 0;
             final int titleIndex = 1;
             final int dtStartIndex = 2;
             final int rRuleIndex = 3;
+            final int allDayIndex = 4;
 
             String selection = CalendarContract.Events.DELETED + " != 1 AND " + CalendarContract.Events.RRULE + " IS NOT NULL";
             Uri uri = CalendarContract.Events.CONTENT_URI;
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.GERMANY);
 
-            try (Cursor cursor = this.contentResolver.query(uri, projection, selection, null, null)) {
+            try (Cursor cursor = this.contentResolver.query(uri, projection, selection, null, CalendarContract.Events.DTSTART + " DESC")) {
 
                 this.rRules.clear();
                 while (cursor.moveToNext()) {
                     long calID = cursor.getLong(calendarIdIndex);
                     String title = cursor.getString(titleIndex);
-                    LocalDate localDate = Instant.ofEpochMilli(cursor.getLong(dtStartIndex)).atZone(ZoneId.systemDefault()).toLocalDate();
+                    String dtStart = formatter.format(new Date(cursor.getLong(dtStartIndex)));
+                    LocalDate localDateStart = LocalDate.parse(dtStart.substring(0, dtStart.indexOf(" ")));
                     String rRuleRaw = cursor.getString(rRuleIndex);
+                    int allDay = cursor.getInt(allDayIndex);
 
-                    RRule rRule = new RRule(rRuleRaw, localDate, title, this.calendars.stream().filter(calendarData -> calendarData.getCalendarId() == calID).findFirst().get(), rRuleRaw.contains("BYDAY") ? null : RRule.DayAbbr.valueOf(localDate.getDayOfWeek().toString().substring(0, 2).toUpperCase()));
+                    RRule rRule = new RRule(rRuleRaw, localDateStart, allDay == 1 ? null : LocalTime.parse(dtStart.substring(dtStart.indexOf(" ") + 1)), title, this.calendars.stream().filter(calendarData -> calendarData.getCalendarId() == calID).findFirst().get(), rRuleRaw.contains("BYDAY") ? null : RRule.DayAbbr.valueOf(localDateStart.getDayOfWeek().toString().substring(0, 2).toUpperCase()));
                     this.rRules.add(rRule);
                 }
             }

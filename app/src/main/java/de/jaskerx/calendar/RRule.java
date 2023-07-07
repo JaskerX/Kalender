@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
 import de.jaskerx.calendar.db.CalendarData;
@@ -12,15 +13,17 @@ public class RRule {
 
     private final String input;
     private final LocalDate firstDate;
+    private final LocalTime localTime;
     private final String title;
     private final CalendarData calendarData;
     private Freq freq;
     private DayAbbr byDay;
     private int interval = 1;
 
-    public RRule(String input, LocalDate firstDate, String title, CalendarData calendarData, @Nullable DayAbbr byDay) {
+    public RRule(String input, LocalDate firstDate, LocalTime localTime, String title, CalendarData calendarData, @Nullable DayAbbr byDay) {
         this.input = input;
         this.firstDate = firstDate;
+        this.localTime = localTime;
         this.title = title;
         this.calendarData = calendarData;
         this.byDay = byDay;
@@ -68,6 +71,10 @@ public class RRule {
 
     public CalendarData getCalendarData() {
         return calendarData;
+    }
+
+    public LocalTime getLocalTime() {
+        return localTime;
     }
 
     public enum Freq {

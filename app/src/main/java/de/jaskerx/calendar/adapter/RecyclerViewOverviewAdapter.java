@@ -60,7 +60,11 @@ public class RecyclerViewOverviewAdapter extends RecyclerView.Adapter<RecyclerVi
 
             for (Event event : day.getEvents()) {
                 View view = LayoutInflater.from(this.mainActivity).inflate(R.layout.calendar_event_entry, null);
-                ((TextView) view.findViewById(R.id.textView)).setText(event.getTitle());
+                ((TextView) view.findViewById(R.id.textView_title)).setText(event.getTitle());
+                ((TextView) view.findViewById(R.id.textView_time)).setText(event.getLocalTime() == null ? "" : event.getLocalTime().toString());
+                if(event.getLocalTime() == null) {
+                    view.findViewById(R.id.textView_time).setPadding(0, 0, 0, 0);
+                }
                 view.findViewById(R.id.linearLayout_eventEntry).setBackgroundColor(event.getCalendarData().getCalendarColor());
                 new Handler().post(() -> {
                     holder.getLinearLayoutEvents().addView(view);
@@ -72,7 +76,11 @@ public class RecyclerViewOverviewAdapter extends RecyclerView.Adapter<RecyclerVi
 
             this.mainActivity.getCalendarHolder().getrRules().stream().filter(rRule -> rRule.contains(day.getLocalDate())).forEach(rRule -> {
                 View view = LayoutInflater.from(this.mainActivity).inflate(R.layout.calendar_event_entry, null);
-                ((TextView) view.findViewById(R.id.textView)).setText(rRule.getTitle());
+                ((TextView) view.findViewById(R.id.textView_title)).setText(rRule.getTitle());
+                ((TextView) view.findViewById(R.id.textView_time)).setText(rRule.getLocalTime() == null ? "" : rRule.getLocalTime().toString());
+                if(rRule.getLocalTime() == null) {
+                    view.findViewById(R.id.textView_time).setPadding(0, 0, 0, 0);
+                }
                 view.findViewById(R.id.linearLayout_eventEntry).setBackgroundColor(rRule.getCalendarData().getCalendarColor());
                 new Handler().post(() -> {
                     holder.getLinearLayoutEvents().addView(view);

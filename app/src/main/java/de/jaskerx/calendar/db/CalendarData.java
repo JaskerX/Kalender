@@ -6,6 +6,7 @@ import android.icu.text.SimpleDateFormat;
 import android.provider.CalendarContract;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
@@ -45,7 +46,7 @@ public class CalendarData {
         String selection = CalendarContract.Events.DELETED + " != 1 AND " + CalendarContract.Events.CALENDAR_ID + " = ? AND " + CalendarContract.Events.RRULE + " IS NULL AND ((" + CalendarContract.Events.DTSTART + " <= ? AND " + CalendarContract.Events.DTEND + " >= ?) OR (" + CalendarContract.Events.EVENT_END_TIMEZONE + " IS NULL AND " + CalendarContract.Events.DTSTART + " >= ? AND " + CalendarContract.Events.DTSTART + " < ?))";
         String[] selectionArgs = new String[] {String.valueOf(this.calendarId), String.valueOf(localDate.atTime(0, 0, 0).toInstant(ZoneOffset.ofHours(0)).toEpochMilli()), String.valueOf(localDate.atTime(0, 0, 0).plusDays(1).toInstant(ZoneOffset.ofHours(0)).toEpochMilli()), String.valueOf(localDate.atTime(0, 0, 0).toInstant(ZoneOffset.ofHours(0)).toEpochMilli()), String.valueOf(localDate.atTime(0, 0, 0).plusDays(1).toInstant(ZoneOffset.ofHours(0)).toEpochMilli())};
 
-        try(Cursor cursor = this.contentResolver.query(CalendarContract.Events.CONTENT_URI, projection, selection, selectionArgs, CalendarContract.Events.DTSTART + ", " + CalendarContract.Events.CALENDAR_DISPLAY_NAME)) {
+        try(Cursor cursor = this.contentResolver.query(CalendarContract.Events.CONTENT_URI, projection, selection, selectionArgs, CalendarContract.Events.DTSTART + " DESC, " + CalendarContract.Events.CALENDAR_DISPLAY_NAME)) {
 
             int titleColIdx = cursor.getColumnIndex(titleCol);
             int startDateColIdx = cursor.getColumnIndex(startDateCol);
@@ -70,7 +71,7 @@ public class CalendarData {
                 String timezone = cursor.getString(timezoneColIdx);
                 String timezoneEnd = cursor.getString(timezoneEndColIdx);
 
-                events.add(new Event(title, this));
+                events.add(new Event(title, this, allDay == 1 ? null : LocalTime.parse(startDate.substring(startDate.indexOf(" ") + 1))));
             }
         }
 

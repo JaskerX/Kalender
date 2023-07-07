@@ -6,11 +6,20 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="5dp"
     android:background="@drawable/calendar_event_background"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     tools:layout_marginBottom="5dp">
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/textView_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="5dp"
+        android:paddingEnd="5dp"
+        android:text="TextView"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:id="@+id/textView_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingStart="5dp"
