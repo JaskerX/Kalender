@@ -1,4 +1,4 @@
-package de.jaskerx.calendar.templates;
+package de.jaskerx.calendar.template;
 
 import android.widget.Button;
 import android.widget.TextView;
@@ -13,9 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.jaskerx.calendar.Day;
+import de.jaskerx.calendar.Event;
 import de.jaskerx.calendar.MainActivity;
 import de.jaskerx.calendar.R;
-import de.jaskerx.calendar.adapters.RecyclerViewOverviewAdapter;
+import de.jaskerx.calendar.adapter.RecyclerViewOverviewAdapter;
+import de.jaskerx.calendar.db.CalendarData;
 
 public class TemplatesMain {
 
@@ -38,7 +40,15 @@ public class TemplatesMain {
         List<Day> days = new ArrayList<>();
         for(int i = 0; i < 41; i++) {
             LocalDate localDate = localDateStart.plus(i, ChronoUnit.DAYS);
-            Day day = new Day(localDate);
+            List<Event> events = new ArrayList<>();
+            for(CalendarData calendarData : this.mainActivity.getCalendarHolder().getCalendars()) {
+                List<Event> eventsData = calendarData.getEvents(localDate);
+                if(eventsData.size() == 0) {
+                    continue;
+                }
+                events.addAll(eventsData);
+            }
+            Day day = new Day(localDate, events);
             days.add(day);
         }
         return new RecyclerViewOverviewAdapter(this.mainActivity, linearLayoutManager, days);

@@ -15,8 +15,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.jaskerx.calendar.adapters.RecyclerViewOverviewAdapter;
-import de.jaskerx.calendar.templates.TemplatesMain;
+import de.jaskerx.calendar.adapter.RecyclerViewOverviewAdapter;
+import de.jaskerx.calendar.db.CalendarHolder;
+import de.jaskerx.calendar.template.TemplatesMain;
 
 public class MainActivity extends Activity {
 
@@ -24,6 +25,7 @@ public class MainActivity extends Activity {
     private List<Button> buttonsMonths = new ArrayList<>();
     private int yearDisplayed;
     private int monthDisplayed;
+    private CalendarHolder calendarHolder;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -34,23 +36,30 @@ public class MainActivity extends Activity {
         Toolbar toolbar = templates.getToolbar();
         toolbar.setTitle(R.string.activity_name_main);
         this.textViewYear = templates.getTextViewYear();
+        this.calendarHolder = new CalendarHolder(this.getContentResolver());
 
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        RecyclerView recyclerViewOverview = templates.getRecyclerViewOverview();
-        RecyclerViewOverviewAdapter recyclerViewOverviewAdapter = templates.getRecyclerViewOverviewAdapter(linearLayoutManager);
-        recyclerViewOverview.setLayoutManager(linearLayoutManager);
-        recyclerViewOverview.setAdapter(recyclerViewOverviewAdapter);
-        recyclerViewOverview.scrollToPosition(recyclerViewOverviewAdapter.getItemCount() / 2);
+        this.calendarHolder.loadCalendars().thenRun(() -> {
+            this.calendarHolder.loadRRules().thenRun(() -> {
+                this.runOnUiThread(() -> {
+                    LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+                    RecyclerView recyclerViewOverview = templates.getRecyclerViewOverview();
+                    RecyclerViewOverviewAdapter recyclerViewOverviewAdapter = templates.getRecyclerViewOverviewAdapter(linearLayoutManager);
+                    recyclerViewOverview.setLayoutManager(linearLayoutManager);
+                    recyclerViewOverview.setAdapter(recyclerViewOverviewAdapter);
+                    recyclerViewOverview.scrollToPosition(recyclerViewOverviewAdapter.getItemCount() / 2);
 
-        this.buttonsMonths = templates.getButtonsMonths();
-        for(int i = 0; i < this.buttonsMonths.size(); i++) {
-            Button button = this.buttonsMonths.get(i);
-            final int finalI = i;
-            button.setOnClickListener(v -> {
-                recyclerViewOverviewAdapter.scrollToMonth(finalI);
-                recyclerViewOverview.stopScroll();
+                    this.buttonsMonths = templates.getButtonsMonths();
+                    for (int i = 0; i < this.buttonsMonths.size(); i++) {
+                        Button button = this.buttonsMonths.get(i);
+                        final int finalI = i;
+                        button.setOnClickListener(v -> {
+                            recyclerViewOverviewAdapter.scrollToMonth(finalI, this.yearDisplayed);
+                            recyclerViewOverview.stopScroll();
+                        });
+                    }
+                });
             });
-        }
+        });
     }
 
     public void refreshDateDisplayed(LocalDate localDate) {
@@ -63,12 +72,8 @@ public class MainActivity extends Activity {
         this.monthDisplayed = localDate.getMonthValue();
     }
 
-    public int getYearDisplayed() {
-        return yearDisplayed;
-    }
-
-    public int getMonthDisplayed() {
-        return monthDisplayed;
+    public CalendarHolder getCalendarHolder() {
+        return calendarHolder;
     }
 
 }
